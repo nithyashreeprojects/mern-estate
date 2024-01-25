@@ -16,13 +16,6 @@ const userSchema = new mongoose.Schema(
         password:{
             type: String,
             required: true,
-            get: function() {
-                return (this._password) ? this._password : '';
-            },
-            // set a function to hash the password before saving to the database
-            set: function(password) {
-                this._password = bcrypt.hashSync(password, 10);
-            }
         }
     },{ timestamps: true});
 
