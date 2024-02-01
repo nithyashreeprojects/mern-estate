@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
+import OAuth from '../components/OAuth';  // Import your OAuth component if not already imported
 
 export default function SignIn() {
-  const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -19,7 +21,7 @@ export default function SignIn() {
     e.preventDefault();
 
     try {
-      setLoading(true);
+      dispatch(signInStart());
       const res = await fetch('api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -27,22 +29,15 @@ export default function SignIn() {
       });
 
       const data = await res.json();
-      console.log(data);
 
-      if (data.success !== undefined && data.success === false) {
-        setLoading(false);
-        setError(data.message);
-        return;
+      if (res.ok) {
+        dispatch(signInSuccess(data));
+        navigate('/');
+      } else {
+        dispatch(signInFailure(data.message || 'Sign-in failed'));
       }
-
-      setLoading(false);
-      setError(null);
-      navigate('/');
-
-      // Redirect or perform other actions on successful signup
     } catch (error) {
-      setLoading(false);
-      setError(error.message);
+      dispatch(signInFailure('An error occurred during sign-in'));
     }
   };
 
@@ -52,24 +47,29 @@ export default function SignIn() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="email"
-          placeholder="email"
+          placeholder="Email"
           className="border p-3 rounded-lg"
           id="email"
+          value={formData.email}
           onChange={handleChange}
+          required
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="Password"
           className="border p-3 rounded-lg"
           id="password"
+          value={formData.password}
           onChange={handleChange}
+          required
         />
         <button
-          disabled={loading || !formData.username || !formData.email || !formData.password}
+          disabled={loading}
           className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
         >
           {loading ? 'Loading...' : 'Sign In'}
         </button>
+        <OAuth />
       </form>
       {error && <p className="text-red-500">{error}</p>}
       <div className="flex gap-2 mt-5">
