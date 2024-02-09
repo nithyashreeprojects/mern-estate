@@ -3,8 +3,15 @@ import { useRef,useState,useEffect } from 'react'
 import {getStorage,ref,getDownloadURL,uploadBytesResumable} from 'firebase/storage';
 import {app} from '../firebase';
 
-import { updateUserStart, updateUserSuccess, updateUserFailure} from '../redux/user/userSlice';
-
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  signOutUserStart,
+} from '../redux/user/userSlice';
  
 export default function Profile() {
   const fileRef = useRef(null);
@@ -16,11 +23,11 @@ export default function Profile() {
   const [updateSuccess, setUpdateSuccess] = useState(false); 
   const dispatch = useDispatch();
 
-  useEffect(()=>{
-    if(file){
+  useEffect(() => {
+    if (file) {
       handleFileUpload(file);
     }
-  },[file]);
+  }, [file]);
 
   const handleFileUpload = (file) => {
     const storage = getStorage(app);
@@ -61,7 +68,6 @@ export default function Profile() {
         },
         body: JSON.stringify(formData),
       });
-
       const data = await res.json();
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
@@ -89,6 +95,22 @@ export default function Profile() {
       dispatch(deleteUserSuccess(data));
     } catch (error) {
       dispatch(deleteUserFailure(error.message));
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch('/api/auth/signout');
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+      dispatch(deleteUserSuccess(data));
+      console.log("sign out success");
+    } catch (error) {
+      dispatch(deleteUserFailure(data.message));
     }
   };
 
@@ -148,7 +170,7 @@ export default function Profile() {
         <button 
           disabled={loading } 
           className='bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95
-          diabled:opacity-80'
+          disabled:opacity-80'
         >
           {loading ? 'Loading...':'Update' }
         </button>
@@ -159,7 +181,7 @@ export default function Profile() {
           className='text-red-700 cursor-pointer'>
               Delete Account
         </span>
-        <span 
+        <span onClick={handleSignOut}
           className='text-red-700 cursor-pointer'>
             Sign Out
         </span>
