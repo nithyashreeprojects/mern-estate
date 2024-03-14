@@ -1,4 +1,4 @@
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaBars } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
@@ -6,7 +6,13 @@ import { useEffect, useState } from 'react';
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
   const [searchTerm, setSearchTerm] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleMenuToggle = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const urlParams = new URLSearchParams(window.location.search);
@@ -22,6 +28,7 @@ export default function Header() {
       setSearchTerm(searchTermFromUrl);
     }
   }, [location.search]);
+
   return (
     <header className='bg-slate-200 shadow-md'>
       <div className='flex justify-between items-center max-w-6xl mx-auto p-3'>
@@ -46,14 +53,19 @@ export default function Header() {
             <FaSearch className='text-slate-600' />
           </button>
         </form>
-        <ul className='flex gap-4'>
+        <div className="sm:hidden">
+          <button onClick={handleMenuToggle} className="text-slate-700 focus:outline-none">
+            <FaBars />
+          </button>
+        </div>
+        <ul className={`flex gap-4 ${menuOpen ? 'block' : 'hidden'} sm:flex`}>
           <Link to='/'>
-            <li className='hidden sm:inline text-slate-700 hover:underline'>
+            <li className='hover:underline' style={{ color: '#000000' }}> 
               Home
             </li>
           </Link>
           <Link to='/about'>
-            <li className='hidden sm:inline text-slate-700 hover:underline'>
+            <li className='hover:underline' style={{ color: '#000000' }}>
               About
             </li>
           </Link>
@@ -65,7 +77,7 @@ export default function Header() {
                 alt='profile'
               />
             ) : (
-              <li className=' text-slate-700 hover:underline'> Sign in</li>
+              <li className="hover:underline" style={{ color: '#000000' }}>Sign in</li>
             )}
           </Link>
         </ul>
